@@ -35,6 +35,33 @@ const CompliancePlatform = () => {
     'Product Description'
   ];
 
+  const handleContentChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    const newContent = e.target.value;
+    setContent(newContent);
+    
+    if (selectedTemplate) {
+      const template = templates.find(t => t.name === selectedTemplate);
+      if (template) {
+        let processedContent = newContent;
+        
+        // Replace template placeholders if they exist
+        if (template.content) {
+          const placeholderRegex = /\{([^}]+)\}/g;
+          const templatePlaceholders = template.content.match(placeholderRegex) || [];
+          
+          templatePlaceholders.forEach(placeholder => {
+            const cleanPlaceholder = placeholder.replace(/[{}]/g, '');
+            const regex = new RegExp(`\\{${cleanPlaceholder}\\}`, 'g');
+            processedContent = processedContent.replace(regex, '');
+          });
+        }
+
+        setConvertedContent(processedContent);
+        checkCompliance();
+      }
+    }
+  };
+
   const checkCompliance = () => {
     if (!content || !selectedTemplate) {
       toast({
@@ -51,6 +78,7 @@ const CompliancePlatform = () => {
     const issues = [];
     const warnings = [];
 
+    // Check for prohibited keywords
     template.prohibitedKeywords.forEach(keyword => {
       if (content.toLowerCase().includes(keyword.toLowerCase())) {
         issues.push({
@@ -61,6 +89,7 @@ const CompliancePlatform = () => {
       }
     });
 
+    // Check for warning words
     template.warningWords.forEach(word => {
       if (content.toLowerCase().includes(word.toLowerCase())) {
         warnings.push({
@@ -148,11 +177,22 @@ const CompliancePlatform = () => {
                   <label className="label">AI-Generated Content</label>
                   <Textarea 
                     value={content}
-                    onChange={(e) => setContent(e.target.value)}
+                    onChange={handleContentChange}
                     placeholder="Paste your AI-generated content here..."
                     className="h-40"
                   />
                 </div>
+
+                {convertedContent && (
+                  <div className="input-group">
+                    <label className="label">Converted Content</label>
+                    <Textarea 
+                      value={convertedContent}
+                      readOnly
+                      className="h-40 bg-gray-50"
+                    />
+                  </div>
+                )}
 
                 <Button onClick={checkCompliance} className="w-full">
                   Check Compliance
