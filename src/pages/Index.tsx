@@ -1,14 +1,15 @@
 import React, { useState } from 'react';
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { CheckCircle, XCircle } from 'lucide-react';
-import { useToast } from '@/components/ui/use-toast';
+import { useToast } from '@/hooks/use-toast';
 import { TemplateForm } from '@/components/compliance/TemplateForm';
 import { TemplateList } from '@/components/compliance/TemplateList';
+import { ContentProcessor } from '@/components/compliance/ContentProcessor';
 import { Template, ComplianceResult, TemplateType } from '@/types/compliance';
 
 const CompliancePlatform = () => {
@@ -35,33 +36,6 @@ const CompliancePlatform = () => {
     'Product Description'
   ];
 
-  const handleContentChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    const newContent = e.target.value;
-    setContent(newContent);
-    
-    if (selectedTemplate) {
-      const template = templates.find(t => t.name === selectedTemplate);
-      if (template) {
-        let processedContent = newContent;
-        
-        // Replace template placeholders if they exist
-        if (template.content) {
-          const placeholderRegex = /\{([^}]+)\}/g;
-          const templatePlaceholders = template.content.match(placeholderRegex) || [];
-          
-          templatePlaceholders.forEach(placeholder => {
-            const cleanPlaceholder = placeholder.replace(/[{}]/g, '');
-            const regex = new RegExp(`\\{${cleanPlaceholder}\\}`, 'g');
-            processedContent = processedContent.replace(regex, '');
-          });
-        }
-
-        setConvertedContent(processedContent);
-        checkCompliance();
-      }
-    }
-  };
-
   const checkCompliance = () => {
     if (!content || !selectedTemplate) {
       toast({
@@ -78,7 +52,6 @@ const CompliancePlatform = () => {
     const issues = [];
     const warnings = [];
 
-    // Check for prohibited keywords
     template.prohibitedKeywords.forEach(keyword => {
       if (content.toLowerCase().includes(keyword.toLowerCase())) {
         issues.push({
@@ -89,7 +62,6 @@ const CompliancePlatform = () => {
       }
     });
 
-    // Check for warning words
     template.warningWords.forEach(word => {
       if (content.toLowerCase().includes(word.toLowerCase())) {
         warnings.push({
@@ -173,15 +145,14 @@ const CompliancePlatform = () => {
                   </Select>
                 </div>
 
-                <div className="input-group">
-                  <label className="label">AI-Generated Content</label>
-                  <Textarea 
-                    value={content}
-                    onChange={handleContentChange}
-                    placeholder="Paste your AI-generated content here..."
-                    className="h-40"
-                  />
-                </div>
+                <ContentProcessor
+                  content={content}
+                  setContent={setContent}
+                  setConvertedContent={setConvertedContent}
+                  selectedTemplate={selectedTemplate}
+                  templates={templates}
+                  onContentProcessed={checkCompliance}
+                />
 
                 {convertedContent && (
                   <div className="input-group">
