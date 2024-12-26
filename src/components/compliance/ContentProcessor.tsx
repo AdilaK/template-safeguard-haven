@@ -5,6 +5,7 @@ import { Input } from '@/components/ui/input';
 import { processWithAI, getStoredApiKey, setStoredApiKey } from '@/services/ai';
 import { useToast } from '@/hooks/use-toast';
 import { Template } from '@/types/compliance';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 
 interface ContentProcessorProps {
   content: string;
@@ -38,19 +39,23 @@ export const ContentProcessor: React.FC<ContentProcessorProps> = ({
     const newContent = e.target.value;
     setContent(newContent);
     
-    if (selectedTemplate) {
+    if (selectedTemplate && apiKey) {
       const template = templates.find(t => t.name === selectedTemplate);
-      if (template && apiKey) {
+      if (template) {
         try {
           setIsProcessing(true);
           const processedContent = await processWithAI(newContent, template, apiKey);
           setConvertedContent(processedContent);
           onContentProcessed();
-          setStoredApiKey(apiKey); // Save the API key if processing was successful
-        } catch (error) {
+          setStoredApiKey(apiKey);
+          toast({
+            title: "Success",
+            description: "Content processed successfully",
+          });
+        } catch (error: any) {
           toast({
             title: "Processing Error",
-            description: "Failed to process content with AI. Please check your API key.",
+            description: error.message || "Failed to process content with AI",
             variant: "destructive"
           });
         } finally {
@@ -62,13 +67,30 @@ export const ContentProcessor: React.FC<ContentProcessorProps> = ({
 
   return (
     <div className="space-y-4">
-      <Input
-        type="password"
-        placeholder="Enter your Google Gemini API key (optional)"
-        value={apiKey}
-        onChange={(e) => setApiKey(e.target.value)}
-        className="mb-4"
-      />
+      <div className="space-y-2">
+        <Input
+          type="password"
+          placeholder="Enter your Google Gemini API key"
+          value={apiKey}
+          onChange={(e) => setApiKey(e.target.value)}
+          className="mb-4"
+        />
+        {!apiKey && (
+          <Alert>
+            <AlertDescription>
+              You need a Google Gemini API key to process content. Get one from{' '}
+              <a 
+                href="https://makersuite.google.com/app/apikey" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="text-blue-500 hover:text-blue-600 underline"
+              >
+                Google AI Studio
+              </a>
+            </AlertDescription>
+          </Alert>
+        )}
+      </div>
       <div className="input-group">
         <label className="label">AI-Generated Content</label>
         <Textarea 
