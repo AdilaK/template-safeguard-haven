@@ -56,7 +56,7 @@ export const ContentProcessor: React.FC<ContentProcessorProps> = ({
     <div className="space-y-4">
       <Input
         type="password"
-        placeholder="Enter your Perplexity API key"
+        placeholder="Enter your Google Gemini API key"
         value={apiKey}
         onChange={(e) => setApiKey(e.target.value)}
         className="mb-4"

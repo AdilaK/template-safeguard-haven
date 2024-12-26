@@ -1,31 +1,18 @@
-export const processWithAI = async (content: string, template: any, apiKey: string) => {
-  try {
-    const response = await fetch('https://api.perplexity.ai/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${apiKey}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: 'llama-3.1-sonar-small-128k-online',
-        messages: [
-          {
-            role: 'system',
-            content: `You are a content formatter. Format the given content according to this template: ${template.content}. 
-                     Maintain the original meaning while adapting it to the template structure.`
-          },
-          {
-            role: 'user',
-            content
-          }
-        ],
-        temperature: 0.2,
-        max_tokens: 1000
-      }),
-    });
+import { GoogleGenerativeAI } from '@google/generative-ai';
+import { Template } from '@/types/compliance';
 
-    const data = await response.json();
-    return data.choices[0].message.content;
+export const processWithAI = async (content: string, template: Template, apiKey: string) => {
+  try {
+    const genAI = new GoogleGenerativeAI(apiKey);
+    const model = genAI.getGenerativeModel({ model: "gemini-pro" });
+
+    const prompt = `Format the following content according to this template: ${template.content}. 
+                   Maintain the original meaning while adapting it to the template structure.
+                   Content to format: ${content}`;
+
+    const result = await model.generateContent(prompt);
+    const response = await result.response;
+    return response.text();
   } catch (error) {
     console.error('AI Processing Error:', error);
     throw new Error('Failed to process content with AI');
