@@ -22,10 +22,11 @@ export const TemplateForm: React.FC<TemplateFormProps> = ({
   const handleProhibitedKeywordAdd = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter') {
       const input = e.currentTarget;
-      setNewTemplate(prev => ({
-        ...prev,
-        prohibitedKeywords: [...prev.prohibitedKeywords, input.value]
-      }));
+      const updatedTemplate = {
+        ...newTemplate,
+        prohibitedKeywords: [...newTemplate.prohibitedKeywords, input.value]
+      };
+      setNewTemplate(updatedTemplate);
       input.value = '';
     }
   };
@@ -33,10 +34,11 @@ export const TemplateForm: React.FC<TemplateFormProps> = ({
   const handleWarningWordAdd = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter') {
       const input = e.currentTarget;
-      setNewTemplate(prev => ({
-        ...prev,
-        warningWords: [...prev.warningWords, input.value]
-      }));
+      const updatedTemplate = {
+        ...newTemplate,
+        warningWords: [...newTemplate.warningWords, input.value]
+      };
+      setNewTemplate(updatedTemplate);
       input.value = '';
     }
   };
