@@ -1,30 +1,33 @@
 import React, { useState } from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { CheckCircle, XCircle, AlertCircle, Plus, Trash, Save } from 'lucide-react';
+import { CheckCircle, XCircle } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
+import { TemplateForm } from '@/components/compliance/TemplateForm';
+import { TemplateList } from '@/components/compliance/TemplateList';
+import { Template, ComplianceResult, TemplateType } from '@/types/compliance';
 
 const CompliancePlatform = () => {
   const { toast } = useToast();
   const [content, setContent] = useState('');
   const [selectedTemplate, setSelectedTemplate] = useState('');
-  const [complianceResults, setComplianceResults] = useState(null);
+  const [complianceResults, setComplianceResults] = useState<ComplianceResult | null>(null);
   const [convertedContent, setConvertedContent] = useState('');
-  const [templates, setTemplates] = useState([]);
-  const [newTemplate, setNewTemplate] = useState({
+  const [templates, setTemplates] = useState<Template[]>([]);
+  const [newTemplate, setNewTemplate] = useState<Template>({
     name: '',
     type: '',
     content: '',
     prohibitedKeywords: [],
     warningWords: [],
+    synonyms: {}
   });
 
-  const templateTypes = [
+  const templateTypes: TemplateType[] = [
     'Customer Service Email',
     'Marketing Copy',
     'Internal Communication',
@@ -43,6 +46,8 @@ const CompliancePlatform = () => {
     }
 
     const template = templates.find(t => t.name === selectedTemplate);
+    if (!template) return;
+
     const issues = [];
     const warnings = [];
 
@@ -71,14 +76,6 @@ const CompliancePlatform = () => {
       issues,
       warnings
     });
-
-    toast({
-      title: issues.length === 0 ? "Content Compliant" : "Compliance Issues Found",
-      description: issues.length === 0 
-        ? "Your content meets all compliance requirements."
-        : `Found ${issues.length} issue(s) and ${warnings.length} warning(s).`,
-      variant: issues.length === 0 ? "default" : "destructive"
-    });
   };
 
   const saveTemplate = () => {
@@ -98,6 +95,7 @@ const CompliancePlatform = () => {
       content: '',
       prohibitedKeywords: [],
       warningWords: [],
+      synonyms: {}
     });
 
     toast({
@@ -106,7 +104,7 @@ const CompliancePlatform = () => {
     });
   };
 
-  const deleteTemplate = (templateId) => {
+  const deleteTemplate = (templateId: number) => {
     setTemplates(prev => prev.filter(t => t.id !== templateId));
     toast({
       title: "Template Deleted",
@@ -175,20 +173,14 @@ const CompliancePlatform = () => {
 
                     {complianceResults.issues.map((issue, index) => (
                       <Alert key={index} variant="destructive">
-                        <AlertTitle className="flex items-center gap-2">
-                          <XCircle className="w-4 h-4" />
-                          {issue.type === 'prohibited' ? 'Prohibited Keyword Found' : 'Structure Issue'}
-                        </AlertTitle>
+                        <AlertTitle>{issue.type === 'prohibited' ? 'Prohibited Keyword Found' : 'Structure Issue'}</AlertTitle>
                         <AlertDescription>{issue.message}</AlertDescription>
                       </Alert>
                     ))}
 
                     {complianceResults.warnings.map((warning, index) => (
                       <Alert key={index}>
-                        <AlertTitle className="flex items-center gap-2">
-                          <AlertCircle className="w-4 h-4" />
-                          Warning
-                        </AlertTitle>
+                        <AlertTitle className="flex items-center gap-2">Warning</AlertTitle>
                         <AlertDescription>{warning.message}</AlertDescription>
                       </Alert>
                     ))}
@@ -196,100 +188,17 @@ const CompliancePlatform = () => {
                 )}
               </TabsContent>
 
-              <TabsContent value="templates" className="space-y-6 fade-in">
-                <div className="space-y-4">
-                  <div className="grid grid-cols-2 gap-4">
-                    <Input
-                      placeholder="Template Name"
-                      value={newTemplate.name}
-                      onChange={(e) => setNewTemplate(prev => ({ ...prev, name: e.target.value }))}
-                    />
-                    <Select
-                      value={newTemplate.type}
-                      onValueChange={(value) => setNewTemplate(prev => ({ ...prev, type: value }))}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Template Type" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {templateTypes.map(type => (
-                          <SelectItem key={type} value={type}>{type}</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  <Textarea
-                    placeholder="Template Content"
-                    value={newTemplate.content}
-                    onChange={(e) => setNewTemplate(prev => ({ ...prev, content: e.target.value }))}
-                    className="h-32"
-                  />
-
-                  <div className="space-y-2">
-                    <Input
-                      placeholder="Add prohibited keyword (press Enter)"
-                      onKeyPress={(e) => {
-                        if (e.key === 'Enter' && e.target.value) {
-                          setNewTemplate(prev => ({
-                            ...prev,
-                            prohibitedKeywords: [...prev.prohibitedKeywords, e.target.value]
-                          }));
-                          e.target.value = '';
-                        }
-                      }}
-                    />
-                    <Input
-                      placeholder="Add warning word (press Enter)"
-                      onKeyPress={(e) => {
-                        if (e.key === 'Enter' && e.target.value) {
-                          setNewTemplate(prev => ({
-                            ...prev,
-                            warningWords: [...prev.warningWords, e.target.value]
-                          }));
-                          e.target.value = '';
-                        }
-                      }}
-                    />
-                  </div>
-
-                  <Button onClick={saveTemplate} className="w-full">
-                    <Save className="w-4 h-4 mr-2" /> Save Template
-                  </Button>
-                </div>
-
-                <div className="space-y-4">
-                  {templates.map(template => (
-                    <Card key={template.id} className="template-card">
-                      <div className="flex justify-between items-start">
-                        <div>
-                          <h3 className="font-medium">{template.name}</h3>
-                          <p className="text-sm text-gray-500">{template.type}</p>
-                          <div className="mt-2">
-                            {template.prohibitedKeywords.length > 0 && (
-                              <p className="text-sm text-red-500">
-                                Prohibited: {template.prohibitedKeywords.join(', ')}
-                              </p>
-                            )}
-                            {template.warningWords.length > 0 && (
-                              <p className="text-sm text-yellow-500">
-                                Warnings: {template.warningWords.join(', ')}
-                              </p>
-                            )}
-                          </div>
-                        </div>
-                        <Button 
-                          variant="ghost" 
-                          size="icon" 
-                          onClick={() => deleteTemplate(template.id)}
-                          className="hover:text-red-500"
-                        >
-                          <Trash className="w-4 h-4" />
-                        </Button>
-                      </div>
-                    </Card>
-                  ))}
-                </div>
+              <TabsContent value="templates" className="space-y-4">
+                <TemplateForm
+                  newTemplate={newTemplate}
+                  setNewTemplate={setNewTemplate}
+                  templateTypes={templateTypes}
+                  onSave={saveTemplate}
+                />
+                <TemplateList
+                  templates={templates}
+                  onDelete={deleteTemplate}
+                />
               </TabsContent>
             </Tabs>
           </CardContent>
