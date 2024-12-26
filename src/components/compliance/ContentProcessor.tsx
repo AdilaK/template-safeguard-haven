@@ -1,8 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { processWithAI } from '@/services/ai';
+import { processWithAI, getStoredApiKey, setStoredApiKey } from '@/services/ai';
 import { useToast } from '@/hooks/use-toast';
 import { Template } from '@/types/compliance';
 
@@ -27,6 +27,13 @@ export const ContentProcessor: React.FC<ContentProcessorProps> = ({
   const [apiKey, setApiKey] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
 
+  useEffect(() => {
+    const storedKey = getStoredApiKey();
+    if (storedKey) {
+      setApiKey(storedKey);
+    }
+  }, []);
+
   const handleContentChange = async (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     const newContent = e.target.value;
     setContent(newContent);
@@ -39,10 +46,11 @@ export const ContentProcessor: React.FC<ContentProcessorProps> = ({
           const processedContent = await processWithAI(newContent, template, apiKey);
           setConvertedContent(processedContent);
           onContentProcessed();
+          setStoredApiKey(apiKey); // Save the API key if processing was successful
         } catch (error) {
           toast({
             title: "Processing Error",
-            description: "Failed to process content with AI. Please try again.",
+            description: "Failed to process content with AI. Please check your API key.",
             variant: "destructive"
           });
         } finally {
@@ -56,7 +64,7 @@ export const ContentProcessor: React.FC<ContentProcessorProps> = ({
     <div className="space-y-4">
       <Input
         type="password"
-        placeholder="Enter your Google Gemini API key"
+        placeholder="Enter your Google Gemini API key (optional)"
         value={apiKey}
         onChange={(e) => setApiKey(e.target.value)}
         className="mb-4"
