@@ -1,23 +1,23 @@
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import { Template } from '@/types/compliance';
 
-const DEFAULT_API_KEY = '';  // Remove default placeholder key
+const DEFAULT_API_KEY = 'AIzaSyAx5KfdkbX6rDK5AHox4hjq2cBzqPifrZk';
 
 export const getStoredApiKey = () => {
   return localStorage.getItem('gemini_api_key') || DEFAULT_API_KEY;
 };
 
 export const setStoredApiKey = (apiKey: string) => {
-  localStorage.setItem('gemini_api_key', apiKey);
+  if (apiKey !== DEFAULT_API_KEY) {
+    localStorage.setItem('gemini_api_key', apiKey);
+  }
 };
 
 export const processWithAI = async (content: string, template: Template, apiKey: string) => {
-  if (!apiKey) {
-    throw new Error('Please provide a valid Google Gemini API key');
-  }
+  const keyToUse = apiKey || DEFAULT_API_KEY;
 
   try {
-    const genAI = new GoogleGenerativeAI(apiKey);
+    const genAI = new GoogleGenerativeAI(keyToUse);
     const model = genAI.getGenerativeModel({ model: "gemini-pro" });
 
     const prompt = `Format the following content according to this template: ${template.content}. 

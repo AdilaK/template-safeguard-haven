@@ -39,7 +39,7 @@ export const ContentProcessor: React.FC<ContentProcessorProps> = ({
     const newContent = e.target.value;
     setContent(newContent);
     
-    if (selectedTemplate && apiKey) {
+    if (selectedTemplate) {
       const template = templates.find(t => t.name === selectedTemplate);
       if (template) {
         try {
@@ -47,7 +47,9 @@ export const ContentProcessor: React.FC<ContentProcessorProps> = ({
           const processedContent = await processWithAI(newContent, template, apiKey);
           setConvertedContent(processedContent);
           onContentProcessed();
-          setStoredApiKey(apiKey);
+          if (apiKey && apiKey !== getStoredApiKey()) {
+            setStoredApiKey(apiKey);
+          }
           toast({
             title: "Success",
             description: "Content processed successfully",
@@ -70,26 +72,24 @@ export const ContentProcessor: React.FC<ContentProcessorProps> = ({
       <div className="space-y-2">
         <Input
           type="password"
-          placeholder="Enter your Google Gemini API key"
+          placeholder="Enter your Google Gemini API key (optional)"
           value={apiKey}
           onChange={(e) => setApiKey(e.target.value)}
           className="mb-4"
         />
-        {!apiKey && (
-          <Alert>
-            <AlertDescription>
-              You need a Google Gemini API key to process content. Get one from{' '}
-              <a 
-                href="https://makersuite.google.com/app/apikey" 
-                target="_blank" 
-                rel="noopener noreferrer"
-                className="text-blue-500 hover:text-blue-600 underline"
-              >
-                Google AI Studio
-              </a>
-            </AlertDescription>
-          </Alert>
-        )}
+        <Alert>
+          <AlertDescription>
+            A default API key is provided, but you can use your own from{' '}
+            <a 
+              href="https://makersuite.google.com/app/apikey" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="text-blue-500 hover:text-blue-600 underline"
+            >
+              Google AI Studio
+            </a>
+          </AlertDescription>
+        </Alert>
       </div>
       <div className="input-group">
         <label className="label">AI-Generated Content</label>
