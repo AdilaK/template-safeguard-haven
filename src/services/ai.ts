@@ -21,7 +21,14 @@ export const processWithAI = async (content: string, template: Template, apiKey:
     const model = genAI.getGenerativeModel({ model: "gemini-pro" });
 
     const prompt = `Format the following content according to this template: ${template.content}. 
-                   Maintain the original meaning while adapting it to the template structure.
+                   Please follow these formatting guidelines:
+                   1. Use proper business language and formal tone
+                   2. Maintain proper paragraph structure
+                   3. Use appropriate punctuation
+                   4. Avoid special characters or emojis
+                   5. Ensure consistent capitalization
+                   6. Use proper spacing between paragraphs
+                   
                    Content to format: ${content}`;
 
     const result = await model.generateContent(prompt);
