@@ -6,20 +6,12 @@ import { processWithAI, getStoredApiKey, setStoredApiKey } from '@/services/ai';
 import { useToast } from '@/hooks/use-toast';
 import { Template } from '@/types/compliance';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 
 interface ContentProcessorProps {
   content: string;
   setContent: (content: string) => void;
   setConvertedContent: (content: string) => void;
   selectedTemplate: string;
-  setSelectedTemplate: (template: string) => void;
   templates: Template[];
   onContentProcessed: () => void;
 }
@@ -29,14 +21,12 @@ export const ContentProcessor: React.FC<ContentProcessorProps> = ({
   setContent,
   setConvertedContent,
   selectedTemplate,
-  setSelectedTemplate,
   templates,
   onContentProcessed
 }) => {
   const { toast } = useToast();
   const [apiKey, setApiKey] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
-  const [isPasting, setIsPasting] = useState(false);
 
   useEffect(() => {
     const storedKey = getStoredApiKey();
@@ -77,40 +67,6 @@ export const ContentProcessor: React.FC<ContentProcessorProps> = ({
     }
   };
 
-  const handlePaste = async () => {
-    try {
-      setIsPasting(true);
-      const clipboardText = await navigator.clipboard.readText();
-      setContent(clipboardText);
-      
-      if (selectedTemplate) {
-        const template = templates.find(t => t.name === selectedTemplate);
-        if (template) {
-          setIsProcessing(true);
-          const processedContent = await processWithAI(clipboardText, template, apiKey);
-          setConvertedContent(processedContent);
-          onContentProcessed();
-          if (apiKey && apiKey !== getStoredApiKey()) {
-            setStoredApiKey(apiKey);
-          }
-          toast({
-            title: "Success",
-            description: "Content pasted and processed successfully",
-          });
-        }
-      }
-    } catch (error: any) {
-      toast({
-        title: "Paste Error",
-        description: "Failed to paste content from clipboard",
-        variant: "destructive"
-      });
-    } finally {
-      setIsPasting(false);
-      setIsProcessing(false);
-    }
-  };
-
   return (
     <div className="space-y-4">
       <div className="space-y-2">
@@ -135,48 +91,15 @@ export const ContentProcessor: React.FC<ContentProcessorProps> = ({
           </AlertDescription>
         </Alert>
       </div>
-      <div className="space-y-4">
-        <Select value={selectedTemplate} onValueChange={setSelectedTemplate}>
-          <SelectTrigger>
-            <SelectValue placeholder="Select a template" />
-          </SelectTrigger>
-          <SelectContent>
-            {templates.map((template) => (
-              <SelectItem key={template.id} value={template.name}>
-                {template.name}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </div>
-      <div className="input-group relative">
+      <div className="input-group">
         <label className="label">AI-Generated Content</label>
-        <div className="relative">
-          <Textarea 
-            value={content}
-            onChange={handleContentChange}
-            placeholder="Paste your AI-generated content here..."
-            className="h-40"
-            disabled={isProcessing || isPasting}
-          />
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            className="absolute right-2 top-2"
-            onClick={handlePaste}
-            disabled={isProcessing || isPasting}
-          >
-            Paste from your clipboard
-          </Button>
-        </div>
-        {(isProcessing || isPasting) && (
-          <div className="absolute inset-0 bg-white/50 flex items-center justify-center">
-            <div className="animate-pulse text-sm text-gray-500">
-              {isProcessing ? 'Processing...' : 'Pasting...'}
-            </div>
-          </div>
-        )}
+        <Textarea 
+          value={content}
+          onChange={handleContentChange}
+          placeholder="Paste your AI-generated content here..."
+          className="h-40"
+          disabled={isProcessing}
+        />
       </div>
     </div>
   );

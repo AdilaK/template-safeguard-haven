@@ -17,6 +17,7 @@ export const TemplateList: React.FC<TemplateListProps> = ({ templates, onDelete 
           <div className="flex justify-between items-start">
             <div>
               <h3 className="font-medium">{template.name}</h3>
+              <p className="text-sm text-gray-500">{template.type}</p>
             </div>
             <Button variant="ghost" size="icon" onClick={() => onDelete(template.id)}>
               <Trash className="w-4 h-4" />
