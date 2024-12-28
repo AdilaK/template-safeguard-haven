@@ -6,6 +6,13 @@ import { processWithAI, getStoredApiKey, setStoredApiKey } from '@/services/ai';
 import { useToast } from '@/hooks/use-toast';
 import { Template } from '@/types/compliance';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 interface ContentProcessorProps {
   content: string;
@@ -125,6 +132,20 @@ export const ContentProcessor: React.FC<ContentProcessorProps> = ({
             </a>
           </AlertDescription>
         </Alert>
+      </div>
+      <div className="space-y-4">
+        <Select value={selectedTemplate} onValueChange={(value) => setSelectedTemplate(value)}>
+          <SelectTrigger>
+            <SelectValue placeholder="Select a template" />
+          </SelectTrigger>
+          <SelectContent>
+            {templates.map((template) => (
+              <SelectItem key={template.id} value={template.name}>
+                {template.name}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </div>
       <div className="input-group relative">
         <label className="label">AI-Generated Content</label>
