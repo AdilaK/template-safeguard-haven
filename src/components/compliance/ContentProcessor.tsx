@@ -19,6 +19,7 @@ interface ContentProcessorProps {
   setContent: (content: string) => void;
   setConvertedContent: (content: string) => void;
   selectedTemplate: string;
+  setSelectedTemplate: (template: string) => void;
   templates: Template[];
   onContentProcessed: () => void;
 }
@@ -28,6 +29,7 @@ export const ContentProcessor: React.FC<ContentProcessorProps> = ({
   setContent,
   setConvertedContent,
   selectedTemplate,
+  setSelectedTemplate,
   templates,
   onContentProcessed
 }) => {
@@ -134,7 +136,7 @@ export const ContentProcessor: React.FC<ContentProcessorProps> = ({
         </Alert>
       </div>
       <div className="space-y-4">
-        <Select value={selectedTemplate} onValueChange={(value) => setSelectedTemplate(value)}>
+        <Select value={selectedTemplate} onValueChange={setSelectedTemplate}>
           <SelectTrigger>
             <SelectValue placeholder="Select a template" />
           </SelectTrigger>
