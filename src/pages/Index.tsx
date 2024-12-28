@@ -1,16 +1,12 @@
 import React, { useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Textarea } from '@/components/ui/textarea';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { CheckCircle, XCircle } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { TemplateForm } from '@/components/compliance/TemplateForm';
 import { TemplateList } from '@/components/compliance/TemplateList';
 import { ContentProcessor } from '@/components/compliance/ContentProcessor';
-import { Template, ComplianceResult, TemplateType } from '@/types/compliance';
+import { Template, ComplianceResult } from '@/types/compliance';
+import { ComplianceResults } from '@/components/compliance/ComplianceResults';
 
 const CompliancePlatform = () => {
   const { toast } = useToast();
@@ -21,20 +17,10 @@ const CompliancePlatform = () => {
   const [templates, setTemplates] = useState<Template[]>([]);
   const [newTemplate, setNewTemplate] = useState<Template>({
     name: '',
-    type: '',
     content: '',
-    prohibitedKeywords: [],
     warningWords: [],
     synonyms: {}
   });
-
-  const templateTypes: TemplateType[] = [
-    'Customer Service Email',
-    'Marketing Copy',
-    'Internal Communication',
-    'Sales Pitch',
-    'Product Description'
-  ];
 
   const checkCompliance = () => {
     if (!content || !selectedTemplate) {
@@ -49,18 +35,7 @@ const CompliancePlatform = () => {
     const template = templates.find(t => t.name === selectedTemplate);
     if (!template) return;
 
-    const issues = [];
     const warnings = [];
-
-    template.prohibitedKeywords.forEach(keyword => {
-      if (content.toLowerCase().includes(keyword.toLowerCase())) {
-        issues.push({
-          type: 'prohibited',
-          word: keyword,
-          message: `Prohibited keyword "${keyword}" found`
-        });
-      }
-    });
 
     template.warningWords.forEach(word => {
       if (content.toLowerCase().includes(word.toLowerCase())) {
@@ -73,14 +48,14 @@ const CompliancePlatform = () => {
     });
 
     setComplianceResults({
-      isCompliant: issues.length === 0,
-      issues,
+      isCompliant: true,
+      issues: [],
       warnings
     });
   };
 
   const saveTemplate = () => {
-    if (!newTemplate.name || !newTemplate.type || !newTemplate.content) {
+    if (!newTemplate.name || !newTemplate.content) {
       toast({
         title: "Missing Information",
         description: "Please fill in all required template fields.",
@@ -92,9 +67,7 @@ const CompliancePlatform = () => {
     setTemplates(prev => [...prev, { ...newTemplate, id: Date.now() }]);
     setNewTemplate({
       name: '',
-      type: '',
       content: '',
-      prohibitedKeywords: [],
       warningWords: [],
       synonyms: {}
     });
@@ -130,21 +103,6 @@ const CompliancePlatform = () => {
               </TabsList>
 
               <TabsContent value="check" className="space-y-6 fade-in">
-                <div className="input-group">
-                  <Select value={selectedTemplate} onValueChange={setSelectedTemplate}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select Template" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {templates.map(template => (
-                        <SelectItem key={template.id} value={template.name}>
-                          {template.name} ({template.type})
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-
                 <ContentProcessor
                   content={content}
                   setContent={setContent}
@@ -154,48 +112,8 @@ const CompliancePlatform = () => {
                   onContentProcessed={checkCompliance}
                 />
 
-                {convertedContent && (
-                  <div className="input-group">
-                    <label className="label">Converted Content</label>
-                    <Textarea 
-                      value={convertedContent}
-                      readOnly
-                      className="h-40 bg-gray-50"
-                    />
-                  </div>
-                )}
-
-                <Button onClick={checkCompliance} className="w-full">
-                  Check Compliance
-                </Button>
-
                 {complianceResults && (
-                  <div className="results-area">
-                    <Alert variant={complianceResults.isCompliant ? "default" : "destructive"}>
-                      <AlertTitle className="flex items-center gap-2">
-                        {complianceResults.isCompliant ? (
-                          <CheckCircle className="text-green-500" />
-                        ) : (
-                          <XCircle className="text-red-500" />
-                        )}
-                        Compliance Check Results
-                      </AlertTitle>
-                    </Alert>
-
-                    {complianceResults.issues.map((issue, index) => (
-                      <Alert key={index} variant="destructive">
-                        <AlertTitle>{issue.type === 'prohibited' ? 'Prohibited Keyword Found' : 'Structure Issue'}</AlertTitle>
-                        <AlertDescription>{issue.message}</AlertDescription>
-                      </Alert>
-                    ))}
-
-                    {complianceResults.warnings.map((warning, index) => (
-                      <Alert key={index}>
-                        <AlertTitle className="flex items-center gap-2">Warning</AlertTitle>
-                        <AlertDescription>{warning.message}</AlertDescription>
-                      </Alert>
-                    ))}
-                  </div>
+                  <ComplianceResults results={complianceResults} convertedContent={convertedContent} />
                 )}
               </TabsContent>
 
@@ -203,7 +121,6 @@ const CompliancePlatform = () => {
                 <TemplateForm
                   newTemplate={newTemplate}
                   setNewTemplate={setNewTemplate}
-                  templateTypes={templateTypes}
                   onSave={saveTemplate}
                 />
                 <TemplateList

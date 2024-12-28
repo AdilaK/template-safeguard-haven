@@ -2,37 +2,27 @@ import React from 'react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Save } from 'lucide-react';
-import { Template, TemplateType } from '@/types/compliance';
+import { Save, FileText } from 'lucide-react';
+import { Template } from '@/types/compliance';
 
 interface TemplateFormProps {
   newTemplate: Template;
   setNewTemplate: (template: Template) => void;
-  templateTypes: TemplateType[];
   onSave: () => void;
 }
+
+const DEMO_TEMPLATE = {
+  name: "Professional Email Template",
+  content: "Dear [Name],\n\nI hope this email finds you well. I am writing to discuss [Topic].\n\nBest regards,\n[Your Name]",
+  warningWords: ["urgent", "asap", "immediately"],
+  synonyms: {}
+};
 
 export const TemplateForm: React.FC<TemplateFormProps> = ({
   newTemplate,
   setNewTemplate,
-  templateTypes,
   onSave,
 }) => {
-  const handleProhibitedKeywordAdd = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === 'Enter' && e.currentTarget.value.trim()) {
-      const keyword = e.currentTarget.value.trim().toLowerCase();
-      if (!newTemplate.prohibitedKeywords.includes(keyword)) {
-        const updatedTemplate = {
-          ...newTemplate,
-          prohibitedKeywords: [...newTemplate.prohibitedKeywords, keyword]
-        };
-        setNewTemplate(updatedTemplate);
-        e.currentTarget.value = '';
-      }
-    }
-  };
-
   const handleWarningWordAdd = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter' && e.currentTarget.value.trim()) {
       const word = e.currentTarget.value.trim().toLowerCase();
@@ -47,14 +37,6 @@ export const TemplateForm: React.FC<TemplateFormProps> = ({
     }
   };
 
-  const removeProhibitedKeyword = (keyword: string) => {
-    const updatedTemplate = {
-      ...newTemplate,
-      prohibitedKeywords: newTemplate.prohibitedKeywords.filter(k => k !== keyword)
-    };
-    setNewTemplate(updatedTemplate);
-  };
-
   const removeWarningWord = (word: string) => {
     const updatedTemplate = {
       ...newTemplate,
@@ -63,27 +45,28 @@ export const TemplateForm: React.FC<TemplateFormProps> = ({
     setNewTemplate(updatedTemplate);
   };
 
+  const loadDemoTemplate = () => {
+    setNewTemplate(DEMO_TEMPLATE);
+  };
+
   return (
     <div className="space-y-4">
-      <div className="grid grid-cols-2 gap-4">
+      <div className="flex justify-between items-center">
         <Input
           placeholder="Template Name"
           value={newTemplate.name}
           onChange={(e) => setNewTemplate({ ...newTemplate, name: e.target.value })}
+          className="flex-1 mr-2"
         />
-        <Select
-          value={newTemplate.type}
-          onValueChange={(value) => setNewTemplate({ ...newTemplate, type: value })}
+        <Button
+          type="button"
+          variant="outline"
+          onClick={loadDemoTemplate}
+          className="whitespace-nowrap"
         >
-          <SelectTrigger>
-            <SelectValue placeholder="Template Type" />
-          </SelectTrigger>
-          <SelectContent>
-            {templateTypes.map(type => (
-              <SelectItem key={type} value={type}>{type}</SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+          <FileText className="w-4 h-4 mr-2" />
+          Load Demo
+        </Button>
       </div>
 
       <Textarea
@@ -93,51 +76,26 @@ export const TemplateForm: React.FC<TemplateFormProps> = ({
         className="h-32"
       />
 
-      <div className="space-y-4">
-        <div>
-          <Input
-            placeholder="Add prohibited keyword (press Enter)"
-            onKeyPress={handleProhibitedKeywordAdd}
-          />
-          <div className="mt-2 flex flex-wrap gap-2">
-            {newTemplate.prohibitedKeywords.map((keyword, index) => (
-              <span
-                key={index}
-                className="bg-red-100 text-red-800 px-2 py-1 rounded-md text-sm flex items-center gap-1"
+      <div>
+        <Input
+          placeholder="Add warning word (press Enter)"
+          onKeyPress={handleWarningWordAdd}
+        />
+        <div className="mt-2 flex flex-wrap gap-2">
+          {newTemplate.warningWords.map((word, index) => (
+            <span
+              key={index}
+              className="bg-yellow-100 text-yellow-800 px-2 py-1 rounded-md text-sm flex items-center gap-1"
+            >
+              {word}
+              <button
+                onClick={() => removeWarningWord(word)}
+                className="ml-1 text-yellow-600 hover:text-yellow-800"
               >
-                {keyword}
-                <button
-                  onClick={() => removeProhibitedKeyword(keyword)}
-                  className="ml-1 text-red-600 hover:text-red-800"
-                >
-                  ×
-                </button>
-              </span>
-            ))}
-          </div>
-        </div>
-
-        <div>
-          <Input
-            placeholder="Add warning word (press Enter)"
-            onKeyPress={handleWarningWordAdd}
-          />
-          <div className="mt-2 flex flex-wrap gap-2">
-            {newTemplate.warningWords.map((word, index) => (
-              <span
-                key={index}
-                className="bg-yellow-100 text-yellow-800 px-2 py-1 rounded-md text-sm flex items-center gap-1"
-              >
-                {word}
-                <button
-                  onClick={() => removeWarningWord(word)}
-                  className="ml-1 text-yellow-600 hover:text-yellow-800"
-                >
-                  ×
-                </button>
-              </span>
-            ))}
-          </div>
+                ×
+              </button>
+            </span>
+          ))}
         </div>
       </div>
 

@@ -8,9 +8,7 @@ export type TemplateType =
 export interface Template {
   id?: number;
   name: string;
-  type: string;
   content: string;
-  prohibitedKeywords: string[];
   warningWords: string[];
   synonyms: Record<string, string[]>;
 }
