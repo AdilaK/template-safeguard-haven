@@ -2,7 +2,7 @@ import React from 'react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
-import { Save, FileText } from 'lucide-react';
+import { Save } from 'lucide-react';
 import { Template } from '@/types/compliance';
 
 interface TemplateFormProps {
@@ -10,13 +10,6 @@ interface TemplateFormProps {
   setNewTemplate: (template: Template) => void;
   onSave: () => void;
 }
-
-const DEMO_TEMPLATE = {
-  name: "Professional Email Template",
-  content: "Dear [Name],\n\nI hope this email finds you well. I am writing to discuss [Topic].\n\nBest regards,\n[Your Name]",
-  warningWords: ["urgent", "asap", "immediately"],
-  synonyms: {}
-};
 
 export const TemplateForm: React.FC<TemplateFormProps> = ({
   newTemplate,
@@ -45,32 +38,24 @@ export const TemplateForm: React.FC<TemplateFormProps> = ({
     setNewTemplate(updatedTemplate);
   };
 
-  const loadDemoTemplate = () => {
-    setNewTemplate(DEMO_TEMPLATE);
-  };
-
   return (
     <div className="space-y-4">
-      <div className="flex justify-between items-center">
-        <Input
-          placeholder="Template Name"
-          value={newTemplate.name}
-          onChange={(e) => setNewTemplate({ ...newTemplate, name: e.target.value })}
-          className="flex-1 mr-2"
-        />
-        <Button
-          type="button"
-          variant="outline"
-          onClick={loadDemoTemplate}
-          className="whitespace-nowrap"
-        >
-          <FileText className="w-4 h-4 mr-2" />
-          Load Demo
-        </Button>
-      </div>
+      <Input
+        placeholder="Template Name"
+        value={newTemplate.name}
+        onChange={(e) => setNewTemplate({ ...newTemplate, name: e.target.value })}
+        className="flex-1"
+      />
 
       <Textarea
-        placeholder="Template Content"
+        placeholder="Enter your template content here... 
+Example:
+Dear [Name],
+
+I hope this email finds you well. I am writing to discuss [Topic].
+
+Best regards,
+[Your Name]"
         value={newTemplate.content}
         onChange={(e) => setNewTemplate({ ...newTemplate, content: e.target.value })}
         className="h-32"
