@@ -6,6 +6,7 @@ import { processWithAI, getStoredApiKey, setStoredApiKey } from '@/services/ai';
 import { useToast } from '@/hooks/use-toast';
 import { Template } from '@/types/compliance';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Clipboard, ClipboardCheck } from 'lucide-react';
 
 interface ContentProcessorProps {
   content: string;
@@ -27,6 +28,7 @@ export const ContentProcessor: React.FC<ContentProcessorProps> = ({
   const { toast } = useToast();
   const [apiKey, setApiKey] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
+  const [isPasting, setIsPasting] = useState(false);
 
   useEffect(() => {
     const storedKey = getStoredApiKey();
@@ -67,6 +69,40 @@ export const ContentProcessor: React.FC<ContentProcessorProps> = ({
     }
   };
 
+  const handlePaste = async () => {
+    try {
+      setIsPasting(true);
+      const clipboardText = await navigator.clipboard.readText();
+      setContent(clipboardText);
+      
+      if (selectedTemplate) {
+        const template = templates.find(t => t.name === selectedTemplate);
+        if (template) {
+          setIsProcessing(true);
+          const processedContent = await processWithAI(clipboardText, template, apiKey);
+          setConvertedContent(processedContent);
+          onContentProcessed();
+          if (apiKey && apiKey !== getStoredApiKey()) {
+            setStoredApiKey(apiKey);
+          }
+          toast({
+            title: "Success",
+            description: "Content pasted and processed successfully",
+          });
+        }
+      }
+    } catch (error: any) {
+      toast({
+        title: "Paste Error",
+        description: "Failed to paste content from clipboard",
+        variant: "destructive"
+      });
+    } finally {
+      setIsPasting(false);
+      setIsProcessing(false);
+    }
+  };
+
   return (
     <div className="space-y-4">
       <div className="space-y-2">
@@ -91,15 +127,34 @@ export const ContentProcessor: React.FC<ContentProcessorProps> = ({
           </AlertDescription>
         </Alert>
       </div>
-      <div className="input-group">
+      <div className="input-group relative">
         <label className="label">AI-Generated Content</label>
-        <Textarea 
-          value={content}
-          onChange={handleContentChange}
-          placeholder="Paste your AI-generated content here..."
-          className="h-40"
-          disabled={isProcessing}
-        />
+        <div className="relative">
+          <Textarea 
+            value={content}
+            onChange={handleContentChange}
+            placeholder="Paste your AI-generated content here..."
+            className="h-40 pr-12"
+            disabled={isProcessing || isPasting}
+          />
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            className="absolute right-2 top-2 hover:bg-gray-100"
+            onClick={handlePaste}
+            disabled={isProcessing || isPasting}
+          >
+            {isPasting ? <ClipboardCheck className="h-4 w-4" /> : <Clipboard className="h-4 w-4" />}
+          </Button>
+        </div>
+        {(isProcessing || isPasting) && (
+          <div className="absolute inset-0 bg-white/50 flex items-center justify-center">
+            <div className="animate-pulse text-sm text-gray-500">
+              {isProcessing ? 'Processing...' : 'Pasting...'}
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
