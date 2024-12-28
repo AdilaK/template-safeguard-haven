@@ -6,7 +6,6 @@ import { processWithAI, getStoredApiKey, setStoredApiKey } from '@/services/ai';
 import { useToast } from '@/hooks/use-toast';
 import { Template } from '@/types/compliance';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Clipboard, ClipboardCheck } from 'lucide-react';
 
 interface ContentProcessorProps {
   content: string;
@@ -134,18 +133,18 @@ export const ContentProcessor: React.FC<ContentProcessorProps> = ({
             value={content}
             onChange={handleContentChange}
             placeholder="Paste your AI-generated content here..."
-            className="h-40 pr-12"
+            className="h-40"
             disabled={isProcessing || isPasting}
           />
           <Button
             type="button"
-            variant="ghost"
-            size="icon"
-            className="absolute right-2 top-2 hover:bg-gray-100"
+            variant="outline"
+            size="sm"
+            className="absolute right-2 top-2"
             onClick={handlePaste}
             disabled={isProcessing || isPasting}
           >
-            {isPasting ? <ClipboardCheck className="h-4 w-4" /> : <Clipboard className="h-4 w-4" />}
+            Paste from your clipboard
           </Button>
         </div>
         {(isProcessing || isPasting) && (
