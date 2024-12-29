@@ -2,7 +2,6 @@ import React from 'react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Save } from 'lucide-react';
 import { Template, TemplateType } from '@/types/compliance';
 
@@ -16,7 +15,6 @@ interface TemplateFormProps {
 export const TemplateForm: React.FC<TemplateFormProps> = ({
   newTemplate,
   setNewTemplate,
-  templateTypes,
   onSave,
 }) => {
   const handleProhibitedKeywordAdd = (e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -65,26 +63,11 @@ export const TemplateForm: React.FC<TemplateFormProps> = ({
 
   return (
     <div className="space-y-4">
-      <div className="grid grid-cols-2 gap-4">
-        <Input
-          placeholder="Template Name"
-          value={newTemplate.name}
-          onChange={(e) => setNewTemplate({ ...newTemplate, name: e.target.value })}
-        />
-        <Select
-          value={newTemplate.type}
-          onValueChange={(value) => setNewTemplate({ ...newTemplate, type: value })}
-        >
-          <SelectTrigger>
-            <SelectValue placeholder="Template Type" />
-          </SelectTrigger>
-          <SelectContent>
-            {templateTypes.map(type => (
-              <SelectItem key={type} value={type}>{type}</SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </div>
+      <Input
+        placeholder="Template Name"
+        value={newTemplate.name}
+        onChange={(e) => setNewTemplate({ ...newTemplate, name: e.target.value })}
+      />
 
       <Textarea
         placeholder="Template Content"
