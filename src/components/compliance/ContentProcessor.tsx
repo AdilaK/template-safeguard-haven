@@ -6,6 +6,7 @@ import { processWithAI, getStoredApiKey, setStoredApiKey } from '@/services/ai';
 import { useToast } from '@/hooks/use-toast';
 import { Template } from '@/types/compliance';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Clipboard } from 'lucide-react';
 
 interface ContentProcessorProps {
   content: string;
@@ -67,6 +68,23 @@ export const ContentProcessor: React.FC<ContentProcessorProps> = ({
     }
   };
 
+  const handlePasteFromClipboard = async () => {
+    try {
+      const clipboardText = await navigator.clipboard.readText();
+      setContent(clipboardText);
+      const event = {
+        target: { value: clipboardText }
+      } as React.ChangeEvent<HTMLTextAreaElement>;
+      handleContentChange(event);
+    } catch (error) {
+      toast({
+        title: "Clipboard Error",
+        description: "Unable to paste from clipboard. Please check your browser permissions.",
+        variant: "destructive"
+      });
+    }
+  };
+
   return (
     <div className="space-y-4">
       <div className="space-y-2">
@@ -93,13 +111,24 @@ export const ContentProcessor: React.FC<ContentProcessorProps> = ({
       </div>
       <div className="input-group">
         <label className="label">AI-Generated Content</label>
-        <Textarea 
-          value={content}
-          onChange={handleContentChange}
-          placeholder="Paste your AI-generated content here..."
-          className="h-40"
-          disabled={isProcessing}
-        />
+        <div className="space-y-2">
+          <Button 
+            variant="outline" 
+            onClick={handlePasteFromClipboard}
+            className="w-full flex items-center justify-center gap-2"
+            type="button"
+          >
+            <Clipboard className="w-4 h-4" />
+            Paste from Clipboard
+          </Button>
+          <Textarea 
+            value={content}
+            onChange={handleContentChange}
+            placeholder="Paste your AI-generated content here..."
+            className="h-40"
+            disabled={isProcessing}
+          />
+        </div>
       </div>
     </div>
   );
