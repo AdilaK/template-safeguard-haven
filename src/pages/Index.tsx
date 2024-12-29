@@ -80,10 +80,10 @@ const CompliancePlatform = () => {
   };
 
   const saveTemplate = () => {
-    if (!newTemplate.name || !newTemplate.type || !newTemplate.content) {
+    if (!newTemplate.name || !newTemplate.content) {
       toast({
         title: "Missing Information",
-        description: "Please fill in all required template fields.",
+        description: "Please fill in template name and content.",
         variant: "destructive"
       });
       return;
