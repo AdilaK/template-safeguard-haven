@@ -2,7 +2,7 @@ import React from 'react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
-import { CheckCircle, XCircle } from 'lucide-react';
+import { CheckCircle, XCircle, AlertTriangle } from 'lucide-react';
 import { Template, ComplianceResult } from '@/types/compliance';
 import { ContentProcessor } from './ContentProcessor';
 
@@ -67,7 +67,7 @@ export const ComplianceChecker: React.FC<ComplianceCheckerProps> = ({
       )}
 
       {complianceResults && (
-        <div className="results-area">
+        <div className="results-area space-y-4">
           <Alert variant={complianceResults.isCompliant ? "default" : "destructive"}>
             <AlertTitle className="flex items-center gap-2">
               {complianceResults.isCompliant ? (
@@ -79,12 +79,23 @@ export const ComplianceChecker: React.FC<ComplianceCheckerProps> = ({
             </AlertTitle>
           </Alert>
 
-          {complianceResults.warnings.map((warning, index) => (
-            <Alert key={index}>
-              <AlertTitle className="flex items-center gap-2">Warning</AlertTitle>
-              <AlertDescription>{warning.message}</AlertDescription>
+          {complianceResults.warnings.length > 0 && (
+            <Alert variant="warning">
+              <AlertTitle className="flex items-center gap-2">
+                <AlertTriangle className="text-yellow-500" />
+                Warning Words Detected
+              </AlertTitle>
+              <AlertDescription className="mt-2">
+                <ul className="list-disc pl-4 space-y-1">
+                  {complianceResults.warnings.map((warning, index) => (
+                    <li key={index}>
+                      Found warning word: "{warning.word}"
+                    </li>
+                  ))}
+                </ul>
+              </AlertDescription>
             </Alert>
-          ))}
+          )}
         </div>
       )}
     </div>
