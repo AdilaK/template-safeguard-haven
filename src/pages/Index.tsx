@@ -31,17 +31,21 @@ const CompliancePlatform = () => {
   };
 
   return (
-    <div className="min-h-screen p-6 bg-gradient-to-b from-gray-50 to-gray-100">
+    <div className="min-h-screen p-6 bg-gradient-to-br from-blue-50 via-white to-blue-50">
       <div className="max-w-6xl mx-auto space-y-8">
-        <div className="text-center space-y-2">
-          <h1 className="text-4xl font-bold tracking-tight">AI Output Compliance Platform</h1>
-          <p className="text-gray-500">Ensure your AI-generated content meets compliance standards</p>
+        <div className="text-center space-y-3">
+          <h1 className="text-4xl font-bold tracking-tight bg-gradient-to-r from-blue-600 to-blue-800 bg-clip-text text-transparent">
+            AI Output Compliance Platform
+          </h1>
+          <p className="text-gray-600 text-lg">
+            Ensure your AI-generated content meets compliance standards
+          </p>
         </div>
 
-        <Card className="content-area">
+        <Card className="content-area border-blue-100">
           <CardContent className="p-6">
             <Tabs defaultValue="check" className="space-y-6">
-              <TabsList className="grid w-full grid-cols-2">
+              <TabsList className="grid w-full grid-cols-2 bg-blue-50">
                 <TabsTrigger value="check">Check Compliance</TabsTrigger>
                 <TabsTrigger value="templates">Manage Templates</TabsTrigger>
               </TabsList>
