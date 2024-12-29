@@ -69,7 +69,14 @@ export const TemplateForm: React.FC<TemplateFormProps> = ({
       />
 
       <Textarea
-        placeholder="Template Content"
+        placeholder="Anything in brackets should be replaced from the AI-generated content, for example:
+
+Hi [Customer Name],
+
+Make message casual, omit anything that's not relevant to the context, also under 25 words.
+
+Kind regards,
+[Your Name]"
         value={newTemplate.content}
         onChange={(e) => setNewTemplate({ ...newTemplate, content: e.target.value })}
         className="h-32"
