@@ -41,6 +41,17 @@ export const ContentProcessor: React.FC<ContentProcessorProps> = ({
     setContent(newContent);
   };
 
+  const checkWarningWords = (processedContent: string, template: Template) => {
+    const warnings: string[] = [];
+    template.warningWords.forEach(word => {
+      const regex = new RegExp(`\\b${word}\\b`, 'gi');
+      if (regex.test(processedContent)) {
+        warnings.push(word);
+      }
+    });
+    return warnings;
+  };
+
   const processContent = async (contentToProcess: string) => {
     if (selectedTemplate) {
       const template = templates.find(t => t.name === selectedTemplate);
@@ -49,32 +60,21 @@ export const ContentProcessor: React.FC<ContentProcessorProps> = ({
           setIsProcessing(true);
           const processedContent = await processWithAI(contentToProcess, template, apiKey);
           setConvertedContent(processedContent);
+          
           if (apiKey && apiKey !== getStoredApiKey()) {
             setStoredApiKey(apiKey);
           }
-          
-          // Check for warning words immediately after processing
-          const warnings = [];
-          template.warningWords.forEach(word => {
-            const regex = new RegExp(`\\b${word}\\b`, 'gi');
-            if (regex.test(processedContent)) {
-              warnings.push(word);
-            }
-          });
 
+          // Check for warning words
+          const warnings = checkWarningWords(processedContent, template);
           if (warnings.length > 0) {
             toast({
               title: "Warning Words Detected",
               description: `Found warning words: ${warnings.join(', ')}`,
               variant: "destructive",
             });
-          } else {
-            toast({
-              title: "Success",
-              description: "Content processed successfully",
-            });
           }
-          
+
           onContentProcessed();
         } catch (error: any) {
           toast({
