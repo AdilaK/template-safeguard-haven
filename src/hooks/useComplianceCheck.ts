@@ -24,10 +24,10 @@ export const useComplianceCheck = () => {
 
     const warnings = [];
 
-    // Check for warning words
+    // Check for warning words in the converted content instead of original content
     template.warningWords.forEach(word => {
       const regex = new RegExp(`\\b${word}\\b`, 'gi');
-      if (regex.test(content)) {
+      if (regex.test(convertedContent)) {
         warnings.push({
           type: 'warning',
           word: word,
