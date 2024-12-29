@@ -79,7 +79,7 @@ export const ComplianceChecker: React.FC<ComplianceCheckerProps> = ({
             </AlertTitle>
           </Alert>
 
-          {complianceResults.warnings.length > 0 && (
+          {complianceResults.warnings && complianceResults.warnings.length > 0 && (
             <Alert variant="destructive">
               <AlertTitle className="flex items-center gap-2">
                 <AlertTriangle className="text-yellow-500" />
@@ -89,7 +89,7 @@ export const ComplianceChecker: React.FC<ComplianceCheckerProps> = ({
                 <ul className="list-disc pl-4 space-y-1">
                   {complianceResults.warnings.map((warning, index) => (
                     <li key={index}>
-                      Found warning word: "{warning.word}"
+                      Found warning word: "{warning.word}" in converted content
                     </li>
                   ))}
                 </ul>

@@ -23,11 +23,12 @@ export const useComplianceCheck = () => {
     if (!template) return;
 
     const warnings = [];
+    const contentToCheck = convertedContent || content;
 
-    // Check for warning words in the converted content instead of original content
+    // Check for warning words in the converted content
     template.warningWords.forEach(word => {
       const regex = new RegExp(`\\b${word}\\b`, 'gi');
-      if (regex.test(convertedContent)) {
+      if (regex.test(contentToCheck)) {
         warnings.push({
           type: 'warning',
           word: word,
@@ -37,10 +38,18 @@ export const useComplianceCheck = () => {
     });
 
     setComplianceResults({
-      isCompliant: true, // Since we removed prohibited words, content is always compliant
+      isCompliant: warnings.length === 0,
       issues: [],
       warnings
     });
+
+    if (warnings.length > 0) {
+      toast({
+        title: "Warning Words Detected",
+        description: `Found ${warnings.length} warning word(s) in the content.`,
+        variant: "destructive"
+      });
+    }
   };
 
   return {
