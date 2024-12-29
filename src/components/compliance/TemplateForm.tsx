@@ -69,7 +69,16 @@ export const TemplateForm: React.FC<TemplateFormProps> = ({
       />
 
       <Textarea
-        placeholder="Template Content"
+        placeholder="Example prompt: 
+Hi (Customer name),
+
+make message casual, omit anything thats not to the context, also in under 25 words
+
+finish by saying kind regards.
+
+adil, 
+
+anything in bracket should be replaced from the copied content ai-generated content, for eg; customer name should be replaced by the name in the input by user"
         value={newTemplate.content}
         onChange={(e) => setNewTemplate({ ...newTemplate, content: e.target.value })}
         className="h-32"
