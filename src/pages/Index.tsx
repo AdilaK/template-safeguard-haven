@@ -1,106 +1,33 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Textarea } from '@/components/ui/textarea';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { CheckCircle, XCircle } from 'lucide-react';
-import { useToast } from '@/hooks/use-toast';
-import { TemplateForm } from '@/components/compliance/TemplateForm';
-import { TemplateList } from '@/components/compliance/TemplateList';
-import { ContentProcessor } from '@/components/compliance/ContentProcessor';
-import { Template, ComplianceResult } from '@/types/compliance';
+import { ComplianceChecker } from '@/components/compliance/ComplianceChecker';
+import { TemplateManager } from '@/components/compliance/TemplateManager';
+import { useComplianceCheck } from '@/hooks/useComplianceCheck';
+import { useTemplateManager } from '@/hooks/useTemplateManager';
 
 const CompliancePlatform = () => {
-  const { toast } = useToast();
-  const [content, setContent] = useState('');
-  const [selectedTemplate, setSelectedTemplate] = useState('');
-  const [complianceResults, setComplianceResults] = useState<ComplianceResult | null>(null);
-  const [convertedContent, setConvertedContent] = useState('');
-  const [templates, setTemplates] = useState<Template[]>([]);
-  const [newTemplate, setNewTemplate] = useState<Template>({
-    name: '',
-    content: '',
-    prohibitedKeywords: [],
-    warningWords: [],
-    synonyms: {}
-  });
+  const {
+    content,
+    setContent,
+    selectedTemplate,
+    setSelectedTemplate,
+    complianceResults,
+    convertedContent,
+    setConvertedContent,
+    checkCompliance
+  } = useComplianceCheck();
 
-  const saveTemplate = () => {
-    if (!newTemplate.name || !newTemplate.content) {
-      toast({
-        title: "Missing Information",
-        description: "Please fill in template name and content.",
-        variant: "destructive"
-      });
-      return;
-    }
-    
-    setTemplates(prev => [...prev, { ...newTemplate, id: Date.now() }]);
-    setNewTemplate({
-      name: '',
-      content: '',
-      prohibitedKeywords: [],
-      warningWords: [],
-      synonyms: {}
-    });
+  const {
+    templates,
+    newTemplate,
+    setNewTemplate,
+    saveTemplate,
+    deleteTemplate
+  } = useTemplateManager();
 
-    toast({
-      title: "Template Saved",
-      description: "Your new template has been saved successfully.",
-    });
-  };
-
-  const checkCompliance = () => {
-    if (!content || !selectedTemplate) {
-      toast({
-        title: "Missing Information",
-        description: "Please select a template and enter content to check.",
-        variant: "destructive"
-      });
-      return;
-    }
-
-    const template = templates.find(t => t.name === selectedTemplate);
-    if (!template) return;
-
-    const issues = [];
-    const warnings = [];
-
-    template.prohibitedKeywords.forEach(keyword => {
-      if (content.toLowerCase().includes(keyword.toLowerCase())) {
-        issues.push({
-          type: 'prohibited',
-          word: keyword,
-          message: `Prohibited keyword "${keyword}" found`
-        });
-      }
-    });
-
-    template.warningWords.forEach(word => {
-      if (content.toLowerCase().includes(word.toLowerCase())) {
-        warnings.push({
-          type: 'warning',
-          word: word,
-          message: `Warning word "${word}" detected`
-        });
-      }
-    });
-
-    setComplianceResults({
-      isCompliant: issues.length === 0,
-      issues,
-      warnings
-    });
-  };
-
-  const deleteTemplate = (templateId: number) => {
-    setTemplates(prev => prev.filter(t => t.id !== templateId));
-    toast({
-      title: "Template Deleted",
-      description: "The template has been removed.",
-    });
+  const handleCheckCompliance = () => {
+    checkCompliance(content, selectedTemplate, templates);
   };
 
   return (
@@ -120,83 +47,25 @@ const CompliancePlatform = () => {
               </TabsList>
 
               <TabsContent value="check" className="space-y-6 fade-in">
-                <div className="input-group">
-                  <Select value={selectedTemplate} onValueChange={setSelectedTemplate}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select Template" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {templates.map(template => (
-                        <SelectItem key={template.id} value={template.name}>
-                          {template.name} ({template.type})
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <ContentProcessor
+                <ComplianceChecker
                   content={content}
                   setContent={setContent}
-                  setConvertedContent={setConvertedContent}
                   selectedTemplate={selectedTemplate}
+                  setSelectedTemplate={setSelectedTemplate}
                   templates={templates}
-                  onContentProcessed={checkCompliance}
+                  complianceResults={complianceResults}
+                  convertedContent={convertedContent}
+                  setConvertedContent={setConvertedContent}
+                  onCheckCompliance={handleCheckCompliance}
                 />
-
-                {convertedContent && (
-                  <div className="input-group">
-                    <label className="label">Converted Content</label>
-                    <Textarea 
-                      value={convertedContent}
-                      readOnly
-                      className="h-40 bg-gray-50"
-                    />
-                  </div>
-                )}
-
-                <Button onClick={checkCompliance} className="w-full">
-                  Check Compliance
-                </Button>
-
-                {complianceResults && (
-                  <div className="results-area">
-                    <Alert variant={complianceResults.isCompliant ? "default" : "destructive"}>
-                      <AlertTitle className="flex items-center gap-2">
-                        {complianceResults.isCompliant ? (
-                          <CheckCircle className="text-green-500" />
-                        ) : (
-                          <XCircle className="text-red-500" />
-                        )}
-                        Compliance Check Results
-                      </AlertTitle>
-                    </Alert>
-
-                    {complianceResults.issues.map((issue, index) => (
-                      <Alert key={index} variant="destructive">
-                        <AlertTitle>{issue.type === 'prohibited' ? 'Prohibited Keyword Found' : 'Structure Issue'}</AlertTitle>
-                        <AlertDescription>{issue.message}</AlertDescription>
-                      </Alert>
-                    ))}
-
-                    {complianceResults.warnings.map((warning, index) => (
-                      <Alert key={index}>
-                        <AlertTitle className="flex items-center gap-2">Warning</AlertTitle>
-                        <AlertDescription>{warning.message}</AlertDescription>
-                      </Alert>
-                    ))}
-                  </div>
-                )}
               </TabsContent>
 
               <TabsContent value="templates" className="space-y-4">
-                <TemplateForm
+                <TemplateManager
                   newTemplate={newTemplate}
                   setNewTemplate={setNewTemplate}
-                  onSave={saveTemplate}
-                />
-                <TemplateList
                   templates={templates}
+                  onSave={saveTemplate}
                   onDelete={deleteTemplate}
                 />
               </TabsContent>
