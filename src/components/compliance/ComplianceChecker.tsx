@@ -80,7 +80,7 @@ export const ComplianceChecker: React.FC<ComplianceCheckerProps> = ({
           </Alert>
 
           {complianceResults.warnings.length > 0 && (
-            <Alert variant="warning">
+            <Alert variant="destructive">
               <AlertTitle className="flex items-center gap-2">
                 <AlertTriangle className="text-yellow-500" />
                 Warning Words Detected
