@@ -39,22 +39,43 @@ export const ContentProcessor: React.FC<ContentProcessorProps> = ({
   const handleContentChange = async (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     const newContent = e.target.value;
     setContent(newContent);
-    
+  };
+
+  const processContent = async (contentToProcess: string) => {
     if (selectedTemplate) {
       const template = templates.find(t => t.name === selectedTemplate);
       if (template) {
         try {
           setIsProcessing(true);
-          const processedContent = await processWithAI(newContent, template, apiKey);
+          const processedContent = await processWithAI(contentToProcess, template, apiKey);
           setConvertedContent(processedContent);
-          onContentProcessed();
           if (apiKey && apiKey !== getStoredApiKey()) {
             setStoredApiKey(apiKey);
           }
-          toast({
-            title: "Success",
-            description: "Content processed successfully",
+          
+          // Check for warning words immediately after processing
+          const warnings = [];
+          template.warningWords.forEach(word => {
+            const regex = new RegExp(`\\b${word}\\b`, 'gi');
+            if (regex.test(processedContent)) {
+              warnings.push(word);
+            }
           });
+
+          if (warnings.length > 0) {
+            toast({
+              title: "Warning Words Detected",
+              description: `Found warning words: ${warnings.join(', ')}`,
+              variant: "destructive",
+            });
+          } else {
+            toast({
+              title: "Success",
+              description: "Content processed successfully",
+            });
+          }
+          
+          onContentProcessed();
         } catch (error: any) {
           toast({
             title: "Processing Error",
@@ -72,10 +93,7 @@ export const ContentProcessor: React.FC<ContentProcessorProps> = ({
     try {
       const clipboardText = await navigator.clipboard.readText();
       setContent(clipboardText);
-      const event = {
-        target: { value: clipboardText }
-      } as React.ChangeEvent<HTMLTextAreaElement>;
-      handleContentChange(event);
+      await processContent(clipboardText);
     } catch (error) {
       toast({
         title: "Clipboard Error",
@@ -128,6 +146,15 @@ export const ContentProcessor: React.FC<ContentProcessorProps> = ({
             <Clipboard className="w-4 h-4" />
             Paste from Clipboard
           </Button>
+          {content && (
+            <Button
+              onClick={() => processContent(content)}
+              className="w-full"
+              disabled={isProcessing}
+            >
+              Process Content
+            </Button>
+          )}
         </div>
       </div>
     </div>

@@ -25,7 +25,7 @@ export const useComplianceCheck = () => {
     const warnings = [];
     const contentToCheck = convertedContent || content;
 
-    // Check for warning words in the converted content
+    // Check for warning words in the content
     template.warningWords.forEach(word => {
       const regex = new RegExp(`\\b${word}\\b`, 'gi');
       if (regex.test(contentToCheck)) {
@@ -37,16 +37,19 @@ export const useComplianceCheck = () => {
       }
     });
 
+    // Update compliance results
     setComplianceResults({
       isCompliant: warnings.length === 0,
       issues: [],
       warnings
     });
 
+    // Show toast notification for warnings
     if (warnings.length > 0) {
+      const warningWords = warnings.map(w => w.word).join(', ');
       toast({
         title: "Warning Words Detected",
-        description: `Found ${warnings.length} warning word(s) in the content.`,
+        description: `Found warning words: ${warningWords}`,
         variant: "destructive"
       });
     }
