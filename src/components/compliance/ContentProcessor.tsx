@@ -112,6 +112,13 @@ export const ContentProcessor: React.FC<ContentProcessorProps> = ({
       <div className="input-group">
         <label className="label">AI-Generated Content</label>
         <div className="space-y-2">
+          <Textarea 
+            value={content}
+            onChange={handleContentChange}
+            placeholder="Paste your AI-generated content here..."
+            className="h-40"
+            disabled={isProcessing}
+          />
           <Button 
             variant="outline" 
             onClick={handlePasteFromClipboard}
@@ -121,13 +128,6 @@ export const ContentProcessor: React.FC<ContentProcessorProps> = ({
             <Clipboard className="w-4 h-4" />
             Paste from Clipboard
           </Button>
-          <Textarea 
-            value={content}
-            onChange={handleContentChange}
-            placeholder="Paste your AI-generated content here..."
-            className="h-40"
-            disabled={isProcessing}
-          />
         </div>
       </div>
     </div>
