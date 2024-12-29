@@ -22,21 +22,12 @@ export const useComplianceCheck = () => {
     const template = templates.find(t => t.name === selectedTemplate);
     if (!template) return;
 
-    const issues = [];
     const warnings = [];
 
-    template.prohibitedKeywords.forEach(keyword => {
-      if (content.toLowerCase().includes(keyword.toLowerCase())) {
-        issues.push({
-          type: 'prohibited',
-          word: keyword,
-          message: `Prohibited keyword "${keyword}" found`
-        });
-      }
-    });
-
+    // Check for warning words
     template.warningWords.forEach(word => {
-      if (content.toLowerCase().includes(word.toLowerCase())) {
+      const regex = new RegExp(`\\b${word}\\b`, 'gi');
+      if (regex.test(content)) {
         warnings.push({
           type: 'warning',
           word: word,
@@ -46,8 +37,8 @@ export const useComplianceCheck = () => {
     });
 
     setComplianceResults({
-      isCompliant: issues.length === 0,
-      issues,
+      isCompliant: true, // Since we removed prohibited words, content is always compliant
+      issues: [],
       warnings
     });
   };
