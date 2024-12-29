@@ -3,12 +3,11 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Save } from 'lucide-react';
-import { Template, TemplateType } from '@/types/compliance';
+import { Template } from '@/types/compliance';
 
 interface TemplateFormProps {
   newTemplate: Template;
   setNewTemplate: (template: Template) => void;
-  templateTypes: TemplateType[];
   onSave: () => void;
 }
 

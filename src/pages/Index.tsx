@@ -10,7 +10,7 @@ import { useToast } from '@/hooks/use-toast';
 import { TemplateForm } from '@/components/compliance/TemplateForm';
 import { TemplateList } from '@/components/compliance/TemplateList';
 import { ContentProcessor } from '@/components/compliance/ContentProcessor';
-import { Template, ComplianceResult, TemplateType } from '@/types/compliance';
+import { Template, ComplianceResult } from '@/types/compliance';
 
 const CompliancePlatform = () => {
   const { toast } = useToast();
@@ -21,20 +21,36 @@ const CompliancePlatform = () => {
   const [templates, setTemplates] = useState<Template[]>([]);
   const [newTemplate, setNewTemplate] = useState<Template>({
     name: '',
-    type: '',
     content: '',
     prohibitedKeywords: [],
     warningWords: [],
     synonyms: {}
   });
 
-  const templateTypes: TemplateType[] = [
-    'Customer Service Email',
-    'Marketing Copy',
-    'Internal Communication',
-    'Sales Pitch',
-    'Product Description'
-  ];
+  const saveTemplate = () => {
+    if (!newTemplate.name || !newTemplate.content) {
+      toast({
+        title: "Missing Information",
+        description: "Please fill in template name and content.",
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    setTemplates(prev => [...prev, { ...newTemplate, id: Date.now() }]);
+    setNewTemplate({
+      name: '',
+      content: '',
+      prohibitedKeywords: [],
+      warningWords: [],
+      synonyms: {}
+    });
+
+    toast({
+      title: "Template Saved",
+      description: "Your new template has been saved successfully.",
+    });
+  };
 
   const checkCompliance = () => {
     if (!content || !selectedTemplate) {
@@ -76,32 +92,6 @@ const CompliancePlatform = () => {
       isCompliant: issues.length === 0,
       issues,
       warnings
-    });
-  };
-
-  const saveTemplate = () => {
-    if (!newTemplate.name || !newTemplate.content) {
-      toast({
-        title: "Missing Information",
-        description: "Please fill in template name and content.",
-        variant: "destructive"
-      });
-      return;
-    }
-    
-    setTemplates(prev => [...prev, { ...newTemplate, id: Date.now() }]);
-    setNewTemplate({
-      name: '',
-      type: '',
-      content: '',
-      prohibitedKeywords: [],
-      warningWords: [],
-      synonyms: {}
-    });
-
-    toast({
-      title: "Template Saved",
-      description: "Your new template has been saved successfully.",
     });
   };
 
@@ -203,7 +193,6 @@ const CompliancePlatform = () => {
                 <TemplateForm
                   newTemplate={newTemplate}
                   setNewTemplate={setNewTemplate}
-                  templateTypes={templateTypes}
                   onSave={saveTemplate}
                 />
                 <TemplateList

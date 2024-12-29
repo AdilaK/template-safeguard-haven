@@ -8,7 +8,7 @@ export type TemplateType =
 export interface Template {
   id?: number;
   name: string;
-  type?: string;  // Made optional
+  type?: string;  // Made completely optional
   content: string;
   prohibitedKeywords: string[];
   warningWords: string[];
