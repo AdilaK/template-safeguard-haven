@@ -16,20 +16,6 @@ export const TemplateForm: React.FC<TemplateFormProps> = ({
   setNewTemplate,
   onSave,
 }) => {
-  const handleProhibitedKeywordAdd = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === 'Enter' && e.currentTarget.value.trim()) {
-      const keyword = e.currentTarget.value.trim().toLowerCase();
-      if (!newTemplate.prohibitedKeywords.includes(keyword)) {
-        const updatedTemplate = {
-          ...newTemplate,
-          prohibitedKeywords: [...newTemplate.prohibitedKeywords, keyword]
-        };
-        setNewTemplate(updatedTemplate);
-        e.currentTarget.value = '';
-      }
-    }
-  };
-
   const handleWarningWordAdd = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter' && e.currentTarget.value.trim()) {
       const word = e.currentTarget.value.trim().toLowerCase();
@@ -42,14 +28,6 @@ export const TemplateForm: React.FC<TemplateFormProps> = ({
         e.currentTarget.value = '';
       }
     }
-  };
-
-  const removeProhibitedKeyword = (keyword: string) => {
-    const updatedTemplate = {
-      ...newTemplate,
-      prohibitedKeywords: newTemplate.prohibitedKeywords.filter(k => k !== keyword)
-    };
-    setNewTemplate(updatedTemplate);
   };
 
   const removeWarningWord = (word: string) => {
@@ -85,29 +63,6 @@ anything in bracket should be replaced from the copied content ai-generated cont
       />
 
       <div className="space-y-4">
-        <div>
-          <Input
-            placeholder="Add prohibited keyword (press Enter)"
-            onKeyPress={handleProhibitedKeywordAdd}
-          />
-          <div className="mt-2 flex flex-wrap gap-2">
-            {newTemplate.prohibitedKeywords.map((keyword, index) => (
-              <span
-                key={index}
-                className="bg-red-100 text-red-800 px-2 py-1 rounded-md text-sm flex items-center gap-1"
-              >
-                {keyword}
-                <button
-                  onClick={() => removeProhibitedKeyword(keyword)}
-                  className="ml-1 text-red-600 hover:text-red-800"
-                >
-                  ×
-                </button>
-              </span>
-            ))}
-          </div>
-        </div>
-
         <div>
           <Input
             placeholder="Add warning word (press Enter)"

@@ -8,7 +8,6 @@ export const useTemplateManager = () => {
   const [newTemplate, setNewTemplate] = useState<Template>({
     name: '',
     content: '',
-    prohibitedKeywords: [],
     warningWords: [],
     synonyms: {}
   });
@@ -27,7 +26,6 @@ export const useTemplateManager = () => {
     setNewTemplate({
       name: '',
       content: '',
-      prohibitedKeywords: [],
       warningWords: [],
       synonyms: {}
     });

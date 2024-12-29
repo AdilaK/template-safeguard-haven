@@ -79,13 +79,6 @@ export const ComplianceChecker: React.FC<ComplianceCheckerProps> = ({
             </AlertTitle>
           </Alert>
 
-          {complianceResults.issues.map((issue, index) => (
-            <Alert key={index} variant="destructive">
-              <AlertTitle>{issue.type === 'prohibited' ? 'Prohibited Keyword Found' : 'Structure Issue'}</AlertTitle>
-              <AlertDescription>{issue.message}</AlertDescription>
-            </Alert>
-          ))}
-
           {complianceResults.warnings.map((warning, index) => (
             <Alert key={index}>
               <AlertTitle className="flex items-center gap-2">Warning</AlertTitle>

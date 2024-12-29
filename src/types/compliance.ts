@@ -10,7 +10,6 @@ export interface Template {
   name: string;
   type?: string;  // Made completely optional
   content: string;
-  prohibitedKeywords: string[];
   warningWords: string[];
   synonyms: Record<string, string[]>;
 }
