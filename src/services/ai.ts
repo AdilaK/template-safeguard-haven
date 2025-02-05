@@ -1,36 +1,52 @@
-import { GoogleGenerativeAI } from '@google/generative-ai';
+import OpenAI from 'openai';
 import { Template } from '@/types/compliance';
 
-const DEFAULT_API_KEY = 'AIzaSyAx5KfdkbX6rDK5AHox4hjq2cBzqPifrZk';
+const DEFAULT_API_KEY = '';
 
 export const getStoredApiKey = () => {
-  return localStorage.getItem('gemini_api_key') || DEFAULT_API_KEY;
+  return localStorage.getItem('openai_api_key') || DEFAULT_API_KEY;
 };
 
 export const setStoredApiKey = (apiKey: string) => {
-  if (apiKey !== DEFAULT_API_KEY) {
-    localStorage.setItem('gemini_api_key', apiKey);
-  }
+  localStorage.setItem('openai_api_key', apiKey);
 };
 
 export const processWithAI = async (content: string, template: Template, apiKey: string) => {
-  const keyToUse = apiKey || DEFAULT_API_KEY;
+  if (!apiKey) {
+    throw new Error('Please provide an OpenAI API key');
+  }
 
   try {
-    const genAI = new GoogleGenerativeAI(keyToUse);
-    const model = genAI.getGenerativeModel({ model: "gemini-pro" });
+    const openai = new OpenAI({
+      apiKey: apiKey,
+      dangerouslyAllowBrowser: true
+    });
 
     const prompt = `Format the following content according to this template: ${template.content}. 
                    Maintain the original meaning while adapting it to the template structure.
                    Content to format: ${content}`;
 
-    const result = await model.generateContent(prompt);
-    const response = await result.response;
-    return response.text();
+    const response = await openai.chat.completions.create({
+      model: "gpt-3.5-turbo",
+      messages: [
+        {
+          role: "system",
+          content: "You are a helpful assistant that formats content according to templates while maintaining the original meaning."
+        },
+        {
+          role: "user",
+          content: prompt
+        }
+      ],
+      temperature: 0.7,
+      max_tokens: 1000
+    });
+
+    return response.choices[0].message.content || '';
   } catch (error: any) {
-    console.error('AI Processing Error:', error);
-    if (error?.message?.includes('API key not valid')) {
-      throw new Error('Invalid API key. Please check your Google Gemini API key');
+    console.error('OpenAI Processing Error:', error);
+    if (error?.message?.includes('API key')) {
+      throw new Error('Invalid API key. Please check your OpenAI API key');
     }
     throw new Error('Failed to process content with AI');
   }

@@ -79,7 +79,7 @@ export const ContentProcessor: React.FC<ContentProcessorProps> = ({
         } catch (error: any) {
           toast({
             title: "Processing Error",
-            description: error.message || "Failed to process content with AI",
+            description: error.message || "Failed to process content with OpenAI",
             variant: "destructive"
           });
         } finally {
@@ -108,21 +108,21 @@ export const ContentProcessor: React.FC<ContentProcessorProps> = ({
       <div className="space-y-2">
         <Input
           type="password"
-          placeholder="Enter your Google Gemini API key (optional)"
+          placeholder="Enter your OpenAI API key"
           value={apiKey}
           onChange={(e) => setApiKey(e.target.value)}
           className="mb-4"
         />
         <Alert>
           <AlertDescription>
-            A default API key is provided, but you can use your own from{' '}
+            Get your OpenAI API key from{' '}
             <a 
-              href="https://makersuite.google.com/app/apikey" 
+              href="https://platform.openai.com/api-keys" 
               target="_blank" 
               rel="noopener noreferrer"
               className="text-blue-500 hover:text-blue-600 underline"
             >
-              Google AI Studio
+              OpenAI Platform
             </a>
           </AlertDescription>
         </Alert>
