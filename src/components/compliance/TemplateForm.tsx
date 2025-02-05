@@ -1,9 +1,10 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
-import { Save } from 'lucide-react';
+import { Save, Plus } from 'lucide-react';
 import { Template } from '@/types/compliance';
+import { useToast } from '@/hooks/use-toast';
 
 interface TemplateFormProps {
   newTemplate: Template;
@@ -11,22 +12,60 @@ interface TemplateFormProps {
   onSave: () => void;
 }
 
+const suggestedWarningWords = [
+  'confidential',
+  'private',
+  'secret',
+  'sensitive',
+  'proprietary',
+  'classified',
+  'restricted',
+  'internal',
+  'offensive',
+  'discriminatory',
+  'inappropriate',
+  'harmful',
+  'biased',
+  'explicit',
+  'personal'
+];
+
 export const TemplateForm: React.FC<TemplateFormProps> = ({
   newTemplate,
   setNewTemplate,
   onSave,
 }) => {
-  const handleWarningWordAdd = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === 'Enter' && e.currentTarget.value.trim()) {
-      const word = e.currentTarget.value.trim().toLowerCase();
-      if (!newTemplate.warningWords.includes(word)) {
+  const { toast } = useToast();
+  const [warningWordInput, setWarningWordInput] = useState('');
+
+  const handleWarningWordAdd = (word: string) => {
+    const trimmedWord = word.trim().toLowerCase();
+    if (trimmedWord) {
+      if (!newTemplate.warningWords.includes(trimmedWord)) {
         const updatedTemplate = {
           ...newTemplate,
-          warningWords: [...newTemplate.warningWords, word]
+          warningWords: [...newTemplate.warningWords, trimmedWord]
         };
         setNewTemplate(updatedTemplate);
-        e.currentTarget.value = '';
+        setWarningWordInput('');
+        toast({
+          title: "Warning Word Added",
+          description: `"${trimmedWord}" has been added to warning words.`
+        });
+      } else {
+        toast({
+          title: "Warning Word Exists",
+          description: "This warning word is already in the list.",
+          variant: "destructive"
+        });
       }
+    }
+  };
+
+  const handleInputKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      handleWarningWordAdd(e.currentTarget.value);
     }
   };
 
@@ -36,6 +75,10 @@ export const TemplateForm: React.FC<TemplateFormProps> = ({
       warningWords: newTemplate.warningWords.filter(w => w !== word)
     };
     setNewTemplate(updatedTemplate);
+    toast({
+      title: "Warning Word Removed",
+      description: `"${word}" has been removed from warning words.`
+    });
   };
 
   return (
@@ -67,25 +110,57 @@ anything in bracket should be replaced from the copied content ai-generated cont
       </Button>
 
       <div className="space-y-2">
-        <Input
-          placeholder="Add warning word (press Enter)"
-          onKeyPress={handleWarningWordAdd}
-        />
-        <div className="mt-2 flex flex-wrap gap-2">
-          {newTemplate.warningWords.map((word, index) => (
-            <span
-              key={index}
-              className="bg-yellow-100 text-yellow-800 px-2 py-1 rounded-md text-sm flex items-center gap-1"
-            >
-              {word}
+        <label className="text-sm font-medium">Warning Words</label>
+        <div className="flex gap-2">
+          <Input
+            placeholder="Add warning word (press Enter)"
+            value={warningWordInput}
+            onChange={(e) => setWarningWordInput(e.target.value)}
+            onKeyPress={handleInputKeyPress}
+          />
+          <Button 
+            variant="outline"
+            onClick={() => handleWarningWordAdd(warningWordInput)}
+          >
+            <Plus className="w-4 h-4" />
+          </Button>
+        </div>
+        
+        <div className="text-sm text-muted-foreground mb-2">
+          Suggested warning words (click to add):
+        </div>
+        <div className="flex flex-wrap gap-2 mb-4">
+          {suggestedWarningWords
+            .filter(word => !newTemplate.warningWords.includes(word))
+            .map((word, index) => (
               <button
-                onClick={() => removeWarningWord(word)}
-                className="ml-1 text-yellow-600 hover:text-yellow-800"
+                key={index}
+                onClick={() => handleWarningWordAdd(word)}
+                className="px-2 py-1 text-sm bg-blue-50 text-blue-700 rounded-md hover:bg-blue-100 transition-colors"
               >
-                ×
+                {word}
               </button>
-            </span>
-          ))}
+            ))}
+        </div>
+
+        <div className="mt-2">
+          <div className="text-sm font-medium mb-2">Current warning words:</div>
+          <div className="flex flex-wrap gap-2">
+            {newTemplate.warningWords.map((word, index) => (
+              <span
+                key={index}
+                className="bg-yellow-100 text-yellow-800 px-2 py-1 rounded-md text-sm flex items-center gap-1"
+              >
+                {word}
+                <button
+                  onClick={() => removeWarningWord(word)}
+                  className="ml-1 text-yellow-600 hover:text-yellow-800"
+                >
+                  ×
+                </button>
+              </span>
+            ))}
+          </div>
         </div>
       </div>
     </div>
