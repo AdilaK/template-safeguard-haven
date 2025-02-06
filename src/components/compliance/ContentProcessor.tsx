@@ -6,7 +6,7 @@ import { processWithAI, getStoredApiKey, setStoredApiKey } from '@/services/ai';
 import { useToast } from '@/hooks/use-toast';
 import { Template } from '@/types/compliance';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Clipboard } from 'lucide-react';
+import { Clipboard, CheckCircle } from 'lucide-react';
 
 interface ContentProcessorProps {
   content: string;
@@ -28,6 +28,7 @@ export const ContentProcessor: React.FC<ContentProcessorProps> = ({
   const { toast } = useToast();
   const [apiKey, setApiKey] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
+  const [isVerified, setIsVerified] = useState(false);
 
   useEffect(() => {
     const storedKey = getStoredApiKey();
@@ -36,55 +37,84 @@ export const ContentProcessor: React.FC<ContentProcessorProps> = ({
     }
   }, []);
 
-  const handleContentChange = async (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+  const handleContentChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     const newContent = e.target.value;
     setContent(newContent);
+    setIsVerified(false); // Reset verification when content changes
   };
 
-  const checkWarningWords = (processedContent: string, template: Template) => {
-    const warnings: string[] = [];
-    template.warningWords.forEach(word => {
-      const regex = new RegExp(`\\b${word}\\b`, 'gi');
-      if (regex.test(processedContent)) {
-        warnings.push(word);
+  const verifyCompliance = async () => {
+    if (!selectedTemplate) {
+      toast({
+        title: "Template Required",
+        description: "Please select a template before verifying compliance.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    const template = templates.find(t => t.name === selectedTemplate);
+    if (template) {
+      try {
+        setIsProcessing(true);
+        const processedContent = await processWithAI(content, template, apiKey);
+        setIsVerified(true);
+        onContentProcessed();
+        
+        toast({
+          title: "Verification Complete",
+          description: "Content has been verified. You can now proceed with conversion.",
+          variant: "default"
+        });
+      } catch (error: any) {
+        toast({
+          title: "Verification Error",
+          description: error.message || "Failed to verify content",
+          variant: "destructive"
+        });
+        setIsVerified(false);
+      } finally {
+        setIsProcessing(false);
       }
-    });
-    return warnings;
+    }
   };
 
-  const processContent = async (contentToProcess: string) => {
-    if (selectedTemplate) {
-      const template = templates.find(t => t.name === selectedTemplate);
-      if (template) {
-        try {
-          setIsProcessing(true);
-          const processedContent = await processWithAI(contentToProcess, template, apiKey);
-          setConvertedContent(processedContent);
-          
-          if (apiKey && apiKey !== getStoredApiKey()) {
-            setStoredApiKey(apiKey);
-          }
+  const convertContent = async () => {
+    if (!isVerified) {
+      toast({
+        title: "Verification Required",
+        description: "Please verify the content before converting.",
+        variant: "destructive"
+      });
+      return;
+    }
 
-          // Check for warning words
-          const warnings = checkWarningWords(processedContent, template);
-          if (warnings.length > 0) {
-            toast({
-              title: "Warning Words Detected",
-              description: `Found warning words: ${warnings.join(', ')}`,
-              variant: "destructive",
-            });
-          }
-
-          onContentProcessed();
-        } catch (error: any) {
-          toast({
-            title: "Processing Error",
-            description: error.message || "Failed to process content with OpenAI",
-            variant: "destructive"
-          });
-        } finally {
-          setIsProcessing(false);
+    const template = templates.find(t => t.name === selectedTemplate);
+    if (template) {
+      try {
+        setIsProcessing(true);
+        const processedContent = await processWithAI(content, template, apiKey);
+        setConvertedContent(processedContent);
+        
+        if (apiKey && apiKey !== getStoredApiKey()) {
+          setStoredApiKey(apiKey);
         }
+
+        toast({
+          title: "Conversion Complete",
+          description: "Content has been successfully converted according to the template.",
+          variant: "default"
+        });
+
+        onContentProcessed();
+      } catch (error: any) {
+        toast({
+          title: "Conversion Error",
+          description: error.message || "Failed to convert content",
+          variant: "destructive"
+        });
+      } finally {
+        setIsProcessing(false);
       }
     }
   };
@@ -93,7 +123,7 @@ export const ContentProcessor: React.FC<ContentProcessorProps> = ({
     try {
       const clipboardText = await navigator.clipboard.readText();
       setContent(clipboardText);
-      await processContent(clipboardText);
+      setIsVerified(false); // Reset verification when new content is pasted
     } catch (error) {
       toast({
         title: "Clipboard Error",
@@ -146,15 +176,24 @@ export const ContentProcessor: React.FC<ContentProcessorProps> = ({
             <Clipboard className="w-4 h-4" />
             Paste from Clipboard
           </Button>
-          {content && (
+          <div className="flex gap-2">
             <Button
-              onClick={() => processContent(content)}
-              className="w-full"
-              disabled={isProcessing}
+              onClick={verifyCompliance}
+              className="flex-1"
+              disabled={isProcessing || !content}
             >
-              Process Content
+              Verify Compliance
             </Button>
-          )}
+            <Button
+              onClick={convertContent}
+              className="flex-1"
+              disabled={isProcessing || !isVerified}
+              variant={isVerified ? "default" : "secondary"}
+            >
+              {isVerified && <CheckCircle className="w-4 h-4 mr-2" />}
+              Convert Content
+            </Button>
+          </div>
         </div>
       </div>
     </div>
