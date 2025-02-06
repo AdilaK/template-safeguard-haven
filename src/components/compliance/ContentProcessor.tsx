@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
@@ -6,7 +7,7 @@ import { processWithAI, getStoredApiKey, setStoredApiKey } from '@/services/ai';
 import { useToast } from '@/hooks/use-toast';
 import { Template } from '@/types/compliance';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Clipboard, CheckCircle } from 'lucide-react';
+import { Clipboard, CheckCircle, Eraser } from 'lucide-react';
 
 interface ContentProcessorProps {
   content: string;
@@ -40,7 +41,42 @@ export const ContentProcessor: React.FC<ContentProcessorProps> = ({
   const handleContentChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     const newContent = e.target.value;
     setContent(newContent);
-    setIsVerified(false); // Reset verification when content changes
+    setIsVerified(false);
+  };
+
+  const cleanPrefatoryPhrases = () => {
+    const prefatoryPhrases = [
+      /^Here is a summary:[\s]*/i,
+      /^Here's a response I've drafted:[\s]*/i,
+      /^Is there anything else you need help with\?[\s]*/i,
+      /^Here's what I've come up with:[\s]*/i,
+      /^I hope this helps\.[\s]*/i,
+      /^Let me know if you need any clarification\.[\s]*/i,
+      /^Here's my response:[\s]*/i,
+    ];
+
+    let cleanedContent = content;
+    prefatoryPhrases.forEach(phrase => {
+      cleanedContent = cleanedContent.replace(phrase, '');
+    });
+
+    // Trim any leading/trailing whitespace
+    cleanedContent = cleanedContent.trim();
+
+    if (cleanedContent !== content) {
+      setContent(cleanedContent);
+      toast({
+        title: "Content Cleaned",
+        description: "Unnecessary prefatory phrases have been removed.",
+        variant: "default"
+      });
+    } else {
+      toast({
+        title: "No Changes Needed",
+        description: "No prefatory phrases were found in the content.",
+        variant: "default"
+      });
+    }
   };
 
   const verifyCompliance = async () => {
@@ -123,7 +159,7 @@ export const ContentProcessor: React.FC<ContentProcessorProps> = ({
     try {
       const clipboardText = await navigator.clipboard.readText();
       setContent(clipboardText);
-      setIsVerified(false); // Reset verification when new content is pasted
+      setIsVerified(false);
     } catch (error) {
       toast({
         title: "Clipboard Error",
@@ -167,15 +203,26 @@ export const ContentProcessor: React.FC<ContentProcessorProps> = ({
             className="h-40"
             disabled={isProcessing}
           />
-          <Button 
-            variant="outline" 
-            onClick={handlePasteFromClipboard}
-            className="w-full flex items-center justify-center gap-2"
-            type="button"
-          >
-            <Clipboard className="w-4 h-4" />
-            Paste from Clipboard
-          </Button>
+          <div className="flex gap-2">
+            <Button 
+              variant="outline" 
+              onClick={handlePasteFromClipboard}
+              className="flex-1 items-center justify-center gap-2"
+              type="button"
+            >
+              <Clipboard className="w-4 h-4" />
+              Paste from Clipboard
+            </Button>
+            <Button
+              variant="outline"
+              onClick={cleanPrefatoryPhrases}
+              className="flex-1 items-center justify-center gap-2"
+              type="button"
+            >
+              <Eraser className="w-4 h-4" />
+              Clean Phrases
+            </Button>
+          </div>
           <div className="flex gap-2">
             <Button
               onClick={verifyCompliance}
