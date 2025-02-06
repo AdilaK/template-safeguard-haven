@@ -22,7 +22,12 @@ export const processWithAI = async (content: string, template: Template, apiKey:
       dangerouslyAllowBrowser: true
     });
 
-    const prompt = `Format the following content according to this template: ${template.content}. 
+    const warningWordsContext = template.warningWords.length > 0 
+      ? `Please avoid using these warning words: ${template.warningWords.join(', ')}.`
+      : '';
+
+    const prompt = `Format the following content according to this template: ${template.content}
+                   ${warningWordsContext}
                    Maintain the original meaning while adapting it to the template structure.
                    Content to format: ${content}`;
 
@@ -31,7 +36,7 @@ export const processWithAI = async (content: string, template: Template, apiKey:
       messages: [
         {
           role: "system",
-          content: "You are a helpful assistant that formats content according to templates while maintaining the original meaning."
+          content: "You are a helpful assistant that formats content according to templates while maintaining the original meaning. You carefully avoid using any warning words specified in the prompt."
         },
         {
           role: "user",
